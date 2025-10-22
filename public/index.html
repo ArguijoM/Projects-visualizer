@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    referrerpolicy="no-referrer" />
+
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Proyectos</h1>
+      <div class="buttons">
+        <button id="btn-logout" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i></button>
+        <!-- Botón inicial de login -->
+        <button id="btn-admin"><i class="fa-solid fa-user-tie"></i> Login</button>
+        <!-- Botón de agregar proyecto, oculto al inicio -->
+        <button id="btn-add" style="display:none;"><i class="fa-solid fa-plus"></i></button>
+      </div>
+    </div>
+
+    <div id="projects"></div>
+  </div>
+
+  <!-- Modal de creación/edición -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span id="modal-close" class="close">&times;</span>
+      <h2 id="modal-title">Nuevo Proyecto</h2>
+      <input id="p-nombre" placeholder="Nombre del proyecto"><br>
+      <input id="p-codigo" placeholder="Código del proyecto"><br>
+      <textarea id="p-desc" placeholder="Descripción (opcional)"></textarea><br>
+      <button id="btn-save">Guardar</button>
+    </div>
+  </div>
+
+  <script src="/main.js"></script>
+</body>
+
+</html>
