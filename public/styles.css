@@ -332,63 +332,71 @@ textarea {
 /* ---------- MEDIA QUERIES ---------- */
 @media (max-width: 600px) {
   .header {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    /* botones a la derecha */
-    position: relative;
+    justify-content: center; /* centramos el título */
     padding-bottom: 10px;
-    flex-wrap: nowrap;
-    /* evitar que los botones bajen */
+    min-height: 60px; /* evita que se solapen */
   }
 
   .header h1 {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 0;
     font-size: 2rem;
-    white-space: nowrap;
-    /* evita que el texto se divida */
     color: #ffffff;
+    margin: 0;
+    text-align: center;
   }
 
   .buttons {
-    margin-left: auto;
-    /* empuja los botones a la derecha */
+    position: absolute;
+    right: 10px; /* siempre en la esquina derecha */
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
-    gap: 10px;
-    white-space: nowrap;
-    /* evita que los botones se apilen */
+    gap: 8px;
   }
 
+  .buttons button {
+    font-size: 1rem;
+    padding: 8px 14px;
+    border-radius: 6px;
+  }
+
+  /* resto igual */
   .project {
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px;
+    gap: 6px;
+    padding: 12px;
   }
 
   .project strong {
-    font-size: 1.5em;
+    font-size: 1.5rem;
   }
 
   .project .meta {
-    font-size: 1.2em;
+    font-size: 1rem;
+  }
+
+  .move-arrows button {
+    font-size: 1rem;
+    padding: 6px;
   }
 
   input,
   textarea {
-    font-size: 0.95rem;
-  }
-
-  button {
-    font-size: 0.9rem;
-    padding: 6px 12px;
+    font-size: 1rem;
+    padding: 10px;
   }
 
   .modal-content {
-    width: 95%;
-    margin: 10% auto;
-    padding: 15px 20px;
+    width: 90%;
+    margin: 20% auto;
+    padding: 20px;
+  }
+
+  #btn-save {
+    font-size: 1rem;
+    padding: 10px 20px;
   }
 }
