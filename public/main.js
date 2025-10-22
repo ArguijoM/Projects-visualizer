@@ -2,9 +2,22 @@ let isAdmin = false;
 let editingId = null;
 
 async function fetchProjects() {
-  const res = await fetch('/api/projects');
-  const data = await res.json();
-  renderProjects(data);
+  const loader = document.getElementById('loader');
+  const container = document.getElementById('projects');
+
+  loader.style.display = 'block';   // mostrar spinner
+  container.innerHTML = '';         // limpiar proyectos previos
+
+  try {
+    const res = await fetch('/api/projects');
+    const data = await res.json();
+    renderProjects(data);
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = '<p>Error al cargar los proyectos.</p>';
+  } finally {
+    loader.style.display = 'none';  // ocultar spinner
+  }
 }
 
 function renderProjects(projects) {
@@ -119,7 +132,7 @@ async function loginFlow() {
     document.getElementById('btn-logout').style.display = 'inline-block';
     document.getElementById('btn-admin').style.display = 'none'; // oculta login
     document.getElementById('btn-add').style.display = 'inline-block'; // muestra "+"
-    alert('Login correcto');
+    //alert('Login correcto');
     fetchProjects();
   }
 }
@@ -133,7 +146,7 @@ async function logout() {
   document.getElementById('btn-logout').style.display = 'none';
   document.getElementById('btn-add').style.display = 'none';
   document.getElementById('btn-admin').style.display = 'inline-block';
-  alert('Sesión cerrada');
+  //alert('Sesión cerrada');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -153,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSave.onclick = saveProject;
 
   // Cerrar modal clicando fuera
-  window.onclick = (e) => {
-    if (e.target === modal) closeModal();
-  };
+//  window.onclick = (e) => {
+//    if (e.target === modal) closeModal();
+//  };
 });

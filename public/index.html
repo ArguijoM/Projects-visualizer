@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     referrerpolicy="no-referrer" />
@@ -12,8 +13,9 @@
 
 <body>
   <div class="container">
+    <div id="loader" class="loader" style="display:none;"></div>
     <div class="header">
-      <h1>Proyectos</h1>
+      <h1>Lista de proyectos</h1>
       <div class="buttons">
         <button id="btn-logout" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i></button>
         <!-- Botón inicial de login -->
@@ -33,7 +35,7 @@
       <h2 id="modal-title">Nuevo Proyecto</h2>
       <input id="p-nombre" placeholder="Nombre del proyecto"><br>
       <input id="p-codigo" placeholder="Código del proyecto"><br>
-      <textarea id="p-desc" placeholder="Descripción (opcional)"></textarea><br>
+      <!--<textarea id="p-desc" placeholder="Descripción (opcional)"></textarea><br>-->
       <button id="btn-save">Guardar</button>
     </div>
   </div>

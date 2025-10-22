@@ -1,27 +1,35 @@
+/* ---------- BODY ---------- */
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: #f9f9f9;
+  background: #121212;
+  /* fondo oscuro */
+  color: #e0e0e0;
+  /* texto claro */
   margin: 0;
   padding: 0;
 }
 
+/* ---------- CONTENEDOR ---------- */
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   width: 90%;
   margin: 40px auto;
-  background: white;
+  background: #1e1e1e;
+  /* panel más oscuro */
   padding: 20px 30px;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+/* ---------- CABECERA ---------- */
 .header {
   display: flex;
-  justify-content: flex-end; /* deja los botones a la derecha */
+  justify-content: flex-end;
+  /* botones a la derecha */
   align-items: center;
-  position: relative; /* necesario para el h1 absoluto */
-  padding-bottom: 10px;
-  flex-wrap: wrap; /* permite que elementos bajen en pantallas pequeñas */
+  position: relative;
+  padding-bottom: 15px;
+  flex-wrap: wrap;
 }
 
 .header h1 {
@@ -29,20 +37,18 @@ body {
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  font-size: 2rem; /* aumenta tamaño para títulos grandes */
-}
-
-h1 {
-  margin: 0;
-  color: #333;
+  color: #ffffff;
+  font-size: 2rem;
+  white-space: nowrap;
 }
 
 .buttons {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap; /* evita que los botones se salgan en móvil */
+  flex-wrap: wrap;
 }
 
+/* ---------- BOTONES ---------- */
 button {
   background-color: #007bff;
   color: white;
@@ -66,25 +72,56 @@ button:hover {
   background-color: #5a6268;
 }
 
+/* Estilo del botón "Guardar" en el modal */
+#btn-save {
+  display: block;
+  /* hace que ocupe toda la línea */
+  margin: 25px auto 0;
+  /* centrado y con más espacio superior */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  /* más relleno para un mejor tamaño */
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+#btn-save:hover {
+  background-color: #0056b3;
+}
+
+
+/* ---------- PROYECTOS ---------- */
 .project {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border: 1px solid #ddd;
-  background: #fafafa;
-  padding: 10px 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  flex-wrap: wrap; /* adapta el contenido en móvil */
+  border: 2px solid #555;
+  /* contorno más visible */
+  background: #2a2a2a;
+  padding: 15px 20px;
+  /* un poco más de espacio interno */
+  border-radius: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .project strong {
-  font-size: 1.8em;
+  font-size: 1.6em;
+  color: #ffffff;
 }
 
 .project .meta {
-  color: #666;
+  color: #aaaaaa;
   font-size: 1.4em;
+}
+
+.project p {
+  color: #cccccc;
 }
 
 .actions button {
@@ -104,7 +141,7 @@ button:hover {
   opacity: 0.8;
 }
 
-/* Modal */
+/* ---------- MODAL ---------- */
 .modal {
   display: none;
   position: fixed;
@@ -114,18 +151,19 @@ button:hover {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .modal-content {
-  background-color: #fff;
+  background-color: #1e1e1e;
   margin: 8% auto;
   padding: 20px 30px;
-  border: 1px solid #888;
+  border: 1px solid #444;
   width: 90%;
   max-width: 400px;
   border-radius: 10px;
   position: relative;
+  color: #e0e0e0;
 }
 
 .close {
@@ -139,45 +177,79 @@ button:hover {
 }
 
 .close:hover {
-  color: black;
+  color: #ffffff;
 }
 
-input, textarea {
+input,
+textarea {
   width: 100%;
   padding: 8px;
   margin: 6px 0;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   border-radius: 6px;
   font-size: 1rem;
   box-sizing: border-box;
+  background-color: #2a2a2a;
+  color: #e0e0e0;
 }
 
-/* ----------- MEDIA QUERIES PARA RESPONSIVE ----------- */
+/* Spinner circular */
+.loader {
+  border: 6px solid #f3f3f3;
+  /* color del fondo del spinner */
+  border-top: 6px solid #007bff;
+  /* color del borde animado */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 30px auto;
+  /* centrado */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ---------- MEDIA QUERIES ---------- */
 @media (max-width: 600px) {
-.header {
-  display: flex;
-  justify-content: center; /* título centrado */
-  align-items: center;
-  position: relative;
-}
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* botones a la derecha */
+    position: relative;
+    padding-bottom: 10px;
+    flex-wrap: nowrap;
+    /* evitar que los botones bajen */
+  }
 
-/* título centrado absolutamente */
-.header h1 {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  white-space: nowrap; /* evita que el texto se divida */
-}
+  .header h1 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-size: 2rem;
+    white-space: nowrap;
+    /* evita que el texto se divida */
+    color: #ffffff;
+  }
 
-/* contenedor de botones */
-.buttons {
-  margin-left: auto; /* empuja los botones a la derecha */
-  display: flex;
-  gap: 10px;
-  white-space: nowrap; /* evita que los botones se apilen */
-}
-
+  .buttons {
+    margin-left: auto;
+    /* empuja los botones a la derecha */
+    display: flex;
+    gap: 10px;
+    white-space: nowrap;
+    /* evita que los botones se apilen */
+  }
 
   .project {
     flex-direction: column;
@@ -193,7 +265,8 @@ input, textarea {
     font-size: 1.2em;
   }
 
-  input, textarea {
+  input,
+  textarea {
     font-size: 0.95rem;
   }
 
