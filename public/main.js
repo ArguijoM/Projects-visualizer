@@ -5,8 +5,8 @@ async function fetchProjects(showLoader = true) {
   const loader = document.getElementById('loader');
   const container = document.getElementById('projects');
 
-  if (showLoader) loader.style.display = 'block';
-  container.innerHTML = '';  // limpiar proyectos previos
+  if (showLoader) loader.style.display = 'block';  // mostrar spinner solo si se indica
+  container.innerHTML = '';                        // limpiar proyectos previos
 
   try {
     const res = await fetch('/api/projects');
@@ -14,9 +14,9 @@ async function fetchProjects(showLoader = true) {
     renderProjects(data);
   } catch (err) {
     console.error(err);
-    container.innerHTML = '<p>Error al cargar los proyectos.</p>';
+    container.innerHTML = '<p style="text-align:center;color:#888;">Error al cargar los proyectos.</p>';
   } finally {
-    if (showLoader) loader.style.display = 'none';
+    if (showLoader) loader.style.display = 'none';  // ocultar spinner si se mostró
   }
 }
 
@@ -101,36 +101,51 @@ async function deleteProject(id) {
 }
 
 async function moveProject(project, direction) {
-  const res = await fetch('/api/projects');
-  const all = await res.json();
+  const loader = document.getElementById('loader');
+  const container = document.getElementById('projects');
 
-  all.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+  // Mostrar loader y ocultar proyectos
+  loader.style.display = 'block';
+  container.style.display = 'none';
 
-  const index = all.findIndex(p => p.id === project.id);
-  const newIndex = index + direction;
-  if (newIndex < 0 || newIndex >= all.length) return;
+  try {
+    const res = await fetch('/api/projects');
+    const all = await res.json();
 
-  // Aseguramos que ambos tengan orden definido
-  all[index].orden ??= index;
-  all[newIndex].orden ??= newIndex;
+    all.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
 
-  // Intercambiar
-  const temp = all[index].orden;
-  all[index].orden = all[newIndex].orden;
-  all[newIndex].orden = temp;
+    const index = all.findIndex(p => p.id === project.id);
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= all.length) return;
 
-  // Guardar cambios en Firebase
-  for (const p of [all[index], all[newIndex]]) {
-    await fetch(`/api/projects/${p.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ orden: p.orden })
-    });
+    all[index].orden ??= index;
+    all[newIndex].orden ??= newIndex;
+
+    const temp = all[index].orden;
+    all[index].orden = all[newIndex].orden;
+    all[newIndex].orden = temp;
+
+    // Guardar cambios en Firebase
+    for (const p of [all[index], all[newIndex]]) {
+      await fetch(`/api/projects/${p.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ orden: p.orden })
+      });
+    }
+
+    await fetchProjects(true); // refrescar proyectos con loader
+  } catch (err) {
+    console.error(err);
+    alert('Error al mover proyecto');
+  } finally {
+    // Ocultar loader y mostrar proyectos
+    loader.style.display = 'none';
+    container.style.display = 'block';
   }
-
-  fetchProjects(false);
 }
+
 
 // Modal logic
 function openModal(project = null) {
