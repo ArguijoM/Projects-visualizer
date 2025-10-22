@@ -13,11 +13,13 @@ body {
 .container {
   max-width: 1000px;
   margin: 40px auto;
-  background: #1e1e1e; /* ejemplo para modo oscuro */
+  background: #1e1e1e;
+  /* ejemplo para modo oscuro */
   padding: 20px 30px;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  position: relative; /* necesario para ::before */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  /* necesario para ::before */
 }
 
 /* Barra vertical degradada a la izquierda */
@@ -26,9 +28,12 @@ body {
   position: absolute;
   top: 60px;
   bottom: 40px;
-  left: 0;            /* a la izquierda */
-  width: 8px;         /* grosor de la barra */
-  border-radius: 4px; /* bordes redondeados */
+  left: 0;
+  /* a la izquierda */
+  width: 8px;
+  /* grosor de la barra */
+  border-radius: 4px;
+  /* bordes redondeados */
   background: linear-gradient(to bottom, #e74c3c, #f1c40f, #2ecc71);
   /* rojo arriba, amarillo medio, verde abajo */
 }
@@ -305,6 +310,7 @@ textarea {
 .priority-high-medium {
   background-color: #f1a20ffa;
 }
+
 /* rojo */
 .priority-medium {
   background-color: #f1ed0f;
@@ -332,37 +338,44 @@ textarea {
 /* ---------- MEDIA QUERIES ---------- */
 @media (max-width: 600px) {
   .header {
-    position: relative;
     display: flex;
+    flex-direction: column;
+    /* apila título y botones */
     align-items: center;
-    justify-content: center; /* centramos el título */
-    padding-bottom: 10px;
-    min-height: 60px; /* evita que se solapen */
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 0;
   }
 
+  /* Elimina el posicionamiento absoluto que causaba el solapamiento */
   .header h1 {
-    font-size: 2rem;
+    position: static;
+    /* antes estaba absolute */
+    transform: none;
+    left: auto;
+    font-size: 1.8rem;
     color: #ffffff;
     margin: 0;
     text-align: center;
+    white-space: nowrap;
   }
 
   .buttons {
-    position: absolute;
-    right: 10px; /* siempre en la esquina derecha */
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
-    gap: 8px;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    /* si hay muchos, que bajen en línea nueva */
+    margin-top: 5px;
   }
 
   .buttons button {
     font-size: 1rem;
-    padding: 8px 14px;
+    padding: 8px 16px;
     border-radius: 6px;
   }
 
-  /* resto igual */
+  /* --- Proyectos --- */
   .project {
     flex-direction: column;
     align-items: flex-start;
@@ -371,11 +384,11 @@ textarea {
   }
 
   .project strong {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .project .meta {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
 
   .move-arrows button {
@@ -383,6 +396,7 @@ textarea {
     padding: 6px;
   }
 
+  /* --- Inputs y modal --- */
   input,
   textarea {
     font-size: 1rem;
@@ -398,5 +412,20 @@ textarea {
   #btn-save {
     font-size: 1rem;
     padding: 10px 20px;
+  }
+
+  .container::before {
+    content: '';
+    position: absolute;
+    top: 120px;
+    bottom: 40px;
+    left: 0;
+    /* a la izquierda */
+    width: 8px;
+    /* grosor de la barra */
+    border-radius: 4px;
+    /* bordes redondeados */
+    background: linear-gradient(to bottom, #e74c3c, #f1c40f, #2ecc71);
+    /* rojo arriba, amarillo medio, verde abajo */
   }
 }
