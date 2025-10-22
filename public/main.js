@@ -1,12 +1,12 @@
 let isAdmin = false;
 let editingId = null;
 
-async function fetchProjects() {
+async function fetchProjects(showLoader = true) {
   const loader = document.getElementById('loader');
   const container = document.getElementById('projects');
 
-  loader.style.display = 'block';   // mostrar spinner
-  container.innerHTML = '';         // limpiar proyectos previos
+  if (showLoader) loader.style.display = 'block';
+  container.innerHTML = '';  // limpiar proyectos previos
 
   try {
     const res = await fetch('/api/projects');
@@ -16,39 +16,74 @@ async function fetchProjects() {
     console.error(err);
     container.innerHTML = '<p>Error al cargar los proyectos.</p>';
   } finally {
-    loader.style.display = 'none';  // ocultar spinner
+    if (showLoader) loader.style.display = 'none';
   }
 }
+
 
 function renderProjects(projects) {
   const container = document.getElementById('projects');
   container.innerHTML = '';
 
-  projects.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'project';
-    div.innerHTML = `
-      <div>
-        <strong>${p.nombre}</strong>
-        <div class="meta">Código: ${p.codigo}</div>
-        <p>${p.descripcion || ''}</p>
-      </div>
+  if (!projects || projects.length === 0) {
+    // Mostrar mensaje centrado
+    const msg = document.createElement('div');
+    msg.textContent = 'No hay proyectos';
+    msg.style.textAlign = 'center';
+    msg.style.color = '#888';
+    msg.style.padding = '40px 0';
+    msg.style.fontSize = '1.2em';
+    container.appendChild(msg);
+    return;
+  }
+
+  // Ordenar proyectos por el campo 'orden' (menor primero)
+  projects.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+
+ projects.forEach((p, index) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'project-wrapper';
+
+  // Bloque principal del proyecto
+  const div = document.createElement('div');
+  div.className = 'project';
+  div.innerHTML = `
+    <div>
+      <strong>${p.nombre}</strong>
+      <div class="meta">Código: ${p.codigo}</div>
+    </div>
+  `;
+
+  // Acciones admin
+  if (isAdmin) {
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    actions.innerHTML = `
+      <button class="edit"><i class="fa-solid fa-file-pen"></i></button>
+      <button class="delete"><i class="fa-solid fa-trash"></i></button>
     `;
+    actions.querySelector('.edit').onclick = () => openModal(p);
+    actions.querySelector('.delete').onclick = () => deleteProject(p.id);
+    div.appendChild(actions);
+  }
 
-    if (isAdmin) {
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      actions.innerHTML = `
-        <button class="edit"><i class="fa-solid fa-file-pen"></i></button>
-        <button class="delete"><i class="fa-solid fa-trash"></i></button>
-      `;
-      actions.querySelector('.edit').onclick = () => openModal(p);
-      actions.querySelector('.delete').onclick = () => deleteProject(p.id);
-      div.appendChild(actions);
-    }
+  wrapper.appendChild(div);
 
-    container.appendChild(div);
-  });
+  // Bloque de flechas (solo visible para admin)
+  const arrows = document.createElement('div');
+  arrows.className = 'move-arrows';
+  arrows.innerHTML = `
+    <button class="up"><i class="fa-solid fa-angle-up"></i></button>
+    <button class="down"><i class="fa-solid fa-angle-down"></i></button>
+  `;
+  arrows.querySelector('.up').onclick = () => moveProject(p, -1);
+  arrows.querySelector('.down').onclick = () => moveProject(p, 1);
+  arrows.style.display = isAdmin ? 'flex' : 'none';
+
+  wrapper.appendChild(arrows);
+  container.appendChild(wrapper);
+});
+
 }
 
 async function deleteProject(id) {
@@ -65,16 +100,56 @@ async function deleteProject(id) {
   }
 }
 
+async function moveProject(project, direction) {
+  const res = await fetch('/api/projects');
+  const all = await res.json();
+
+  all.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+
+  const index = all.findIndex(p => p.id === project.id);
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= all.length) return;
+
+  // Aseguramos que ambos tengan orden definido
+  all[index].orden ??= index;
+  all[newIndex].orden ??= newIndex;
+
+  // Intercambiar
+  const temp = all[index].orden;
+  all[index].orden = all[newIndex].orden;
+  all[newIndex].orden = temp;
+
+  // Guardar cambios en Firebase
+  for (const p of [all[index], all[newIndex]]) {
+    await fetch(`/api/projects/${p.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ orden: p.orden })
+    });
+  }
+
+  fetchProjects(false);
+}
+
 // Modal logic
 function openModal(project = null) {
   const modal = document.getElementById('modal');
+  const inputNombre = document.getElementById('p-nombre');
+  const inputCodigo = document.getElementById('p-codigo');
+
+  if (!modal || !inputNombre || !inputCodigo) {
+    console.error("Modal o inputs no encontrados en el DOM");
+    return;
+  }
+
   modal.style.display = 'block';
   editingId = project ? project.id : null;
   document.getElementById('modal-title').textContent = project ? 'Editar Proyecto' : 'Nuevo Proyecto';
-  document.getElementById('p-nombre').value = project ? project.nombre : '';
-  document.getElementById('p-codigo').value = project ? project.codigo : '';
-  document.getElementById('p-desc').value = project ? project.descripcion || '' : '';
+  inputNombre.value = project ? project.nombre : '';
+  inputCodigo.value = project ? project.codigo : '';
 }
+
 
 function closeModal() {
   document.getElementById('modal').style.display = 'none';
@@ -83,9 +158,16 @@ function closeModal() {
 
 // Guardar (crear o editar)
 async function saveProject() {
-  const nombre = document.getElementById('p-nombre').value.trim();
-  const codigo = document.getElementById('p-codigo').value.trim();
-  const descripcion = document.getElementById('p-desc').value.trim();
+  const inputNombre = document.getElementById('p-nombre');
+  const inputCodigo = document.getElementById('p-codigo');
+
+  if (!inputNombre || !inputCodigo) {
+    console.error("⚠️ Inputs del modal no encontrados");
+    return;
+  }
+
+  const nombre = inputNombre.value.trim();
+  const codigo = inputCodigo.value.trim();
 
   if (!nombre || !codigo) {
     alert('Nombre y código son obligatorios');
@@ -99,7 +181,7 @@ async function saveProject() {
     method,
     headers: { 'Content-Type': 'application/json' },
     credentials: 'same-origin',
-    body: JSON.stringify({ nombre, codigo, descripcion })
+    body: JSON.stringify({ nombre, codigo })
   });
 
   if (res.ok) {
@@ -111,7 +193,6 @@ async function saveProject() {
     alert('Error: ' + (e.error || res.status));
   }
 }
-
 // Login Flow
 async function loginFlow() {
   if (!isAdmin) {
@@ -166,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSave.onclick = saveProject;
 
   // Cerrar modal clicando fuera
-//  window.onclick = (e) => {
-//    if (e.target === modal) closeModal();
-//  };
+  //  window.onclick = (e) => {
+  //    if (e.target === modal) closeModal();
+  //  };
 });

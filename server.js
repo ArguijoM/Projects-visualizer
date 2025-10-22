@@ -43,15 +43,26 @@ function requireLogin(req, res, next) {
 // Obtener todos los proyectos (público)
 app.get('/api/projects', async (req, res) => {
   try {
-    const snapshot = await projectsCollection.orderBy('codigo').get();
+    const snapshot = await projectsCollection.orderBy('orden', 'asc').get();
     const projects = [];
-    snapshot.forEach(doc => projects.push({ id: doc.id, ...doc.data() }));
-    res.json(projects);
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      projects.push({ id: doc.id, ...data });
+    });
+
+    const ordered = projects.sort((a, b) => {
+      const orderA = a.orden !== undefined ? a.orden : 9999;
+      const orderB = b.orden !== undefined ? b.orden : 9999;
+      return orderA - orderB;
+    });
+
+    res.json(ordered);
   } catch (err) {
-    console.error(err);
+    console.error('Error obteniendo proyectos:', err);
     res.status(500).json({ error: 'Error leyendo proyectos' });
   }
 });
+
 
 // Login (envía { password })
 app.post('/api/login', async (req, res) => {
@@ -77,12 +88,17 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-// Crear proyecto (protegido) body: { nombre, codigo, descripcion }
+
+// Crear proyecto (protegido)
 app.post('/api/projects', requireLogin, async (req, res) => {
-  const { nombre, codigo, descripcion } = req.body;
+  const { nombre, codigo } = req.body;
   if (!nombre || !codigo) return res.status(400).json({ error: 'Faltan campos' });
   try {
-    const docRef = await projectsCollection.add({ nombre, codigo, descripcion: descripcion || '' });
+    // Agregamos campo 'orden' con un número grande por defecto
+    const count = await projectsCollection.get();
+    const orden = count.size; // el siguiente número disponible
+
+    const docRef = await projectsCollection.add({ nombre, codigo, orden });
     res.json({ id: docRef.id });
   } catch (err) {
     console.error(err);
@@ -90,11 +106,18 @@ app.post('/api/projects', requireLogin, async (req, res) => {
   }
 });
 
-// Editar proyecto (protegido) PUT /api/projects/:id
+
+// Editar proyecto (protegido)
 app.put('/api/projects/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
-  const data = (({ nombre, codigo, descripcion }) => ({ nombre, codigo, descripcion }))(req.body);
+  const { nombre, codigo, orden } = req.body;
+
   try {
+    const data = {};
+    if (nombre) data.nombre = nombre;
+    if (codigo) data.codigo = codigo;
+    if (orden !== undefined) data.orden = orden;
+
     await projectsCollection.doc(id).update(data);
     res.json({ ok: true });
   } catch (err) {
