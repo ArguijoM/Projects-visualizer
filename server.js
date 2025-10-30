@@ -96,7 +96,7 @@ app.post('/api/projects', requireLogin, async (req, res) => {
 
   try {
     const snapshot = await projectsCollection.get();
-    const orden = snapshot.size + 1; // +1 para que el nuevo quede al final
+    const orden = snapshot.size + 1; // agregar al final
 
     const docRef = await projectsCollection.add({ nombre, codigo, orden });
     res.json({ id: docRef.id, nombre, codigo, orden });
@@ -110,15 +110,45 @@ app.post('/api/projects', requireLogin, async (req, res) => {
 // Editar proyecto (protegido)
 app.put('/api/projects/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
-  const { nombre, codigo, orden } = req.body;
+  const { nombre, codigo, orden: newOrden } = req.body;
 
   try {
-    const data = {};
-    if (nombre) data.nombre = nombre;
-    if (codigo) data.codigo = codigo;
-    if (orden !== undefined) data.orden = orden;
+    const docRef = projectsCollection.doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Proyecto no encontrado' });
 
-    await projectsCollection.doc(id).update(data);
+    const updates = {};
+    if (nombre) updates.nombre = nombre;
+    if (codigo) updates.codigo = codigo;
+
+    if (newOrden !== undefined && newOrden !== doc.data().orden) {
+      const oldOrden = doc.data().orden;
+
+      // Ajustar orden de otros proyectos
+      const snapshot = await projectsCollection.get();
+      const batch = db.batch();
+
+      snapshot.forEach(d => {
+        const o = d.data().orden;
+        if (d.id !== id) {
+          // Movimiento hacia arriba
+          if (newOrden < oldOrden && o >= newOrden && o < oldOrden) {
+            batch.update(d.ref, { orden: o + 1 });
+          }
+          // Movimiento hacia abajo
+          if (newOrden > oldOrden && o <= newOrden && o > oldOrden) {
+            batch.update(d.ref, { orden: o - 1 });
+          }
+        }
+      });
+
+      updates.orden = newOrden;
+      batch.update(docRef, updates);
+      await batch.commit();
+    } else {
+      await docRef.update(updates);
+    }
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -129,14 +159,29 @@ app.put('/api/projects/:id', requireLogin, async (req, res) => {
 // Borrar proyecto (protegido)
 app.delete('/api/projects/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
+
   try {
-    await projectsCollection.doc(id).delete();
+    const docRef = projectsCollection.doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Proyecto no encontrado' });
+
+    const deletedOrden = doc.data().orden;
+
+    await docRef.delete();
+
+    // Ajustar orden de los demás proyectos
+    const snapshot = await projectsCollection.where('orden', '>', deletedOrden).get();
+    const batch = db.batch();
+    snapshot.forEach(d => batch.update(d.ref, { orden: d.data().orden - 1 }));
+    await batch.commit();
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error borrando proyecto' });
   }
 });
+
 
 // Ruta por defecto: sirve index.html (ya lo hace express.static)
 // levantar servidor

@@ -101,48 +101,30 @@ async function deleteProject(id) {
 }
 
 async function moveProject(project, direction) {
-  const loader = document.getElementById('loader');
-  const container = document.getElementById('projects');
-
-  // Mostrar loader y ocultar proyectos
-  loader.style.display = 'block';
-  container.style.display = 'none';
-
   try {
     const res = await fetch('/api/projects');
     const all = await res.json();
 
-    all.sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+    all.sort((a, b) => a.orden - b.orden);
 
     const index = all.findIndex(p => p.id === project.id);
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= all.length) return;
 
-    all[index].orden ??= index;
-    all[newIndex].orden ??= newIndex;
+    const targetProject = all[newIndex];
 
-    const temp = all[index].orden;
-    all[index].orden = all[newIndex].orden;
-    all[newIndex].orden = temp;
+    // Intercambiar orden usando PUT
+    await fetch(`/api/projects/${project.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ orden: targetProject.orden })
+    });
 
-    // Guardar cambios en Firebase
-    for (const p of [all[index], all[newIndex]]) {
-      await fetch(`/api/projects/${p.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ orden: p.orden })
-      });
-    }
-
-    await fetchProjects(true); // refrescar proyectos con loader
+    await fetchProjects();
   } catch (err) {
     console.error(err);
     alert('Error al mover proyecto');
-  } finally {
-    // Ocultar loader y mostrar proyectos
-    loader.style.display = 'none';
-    container.style.display = 'block';
   }
 }
 
@@ -173,25 +155,12 @@ function closeModal() {
 
 // Guardar (crear o editar)
 async function saveProject() {
-  const inputNombre = document.getElementById('p-nombre');
-  const inputCodigo = document.getElementById('p-codigo');
+  const nombre = document.getElementById('p-nombre').value.trim();
+  const codigo = document.getElementById('p-codigo').value.trim();
 
-  const nombre = inputNombre.value.trim();
-  const codigo = inputCodigo.value.trim();
+  if (!nombre || !codigo) return alert('Nombre y código son obligatorios');
 
-  if (!nombre || !codigo) {
-    alert('Nombre y código son obligatorios');
-    return;
-  }
-
-  let bodyData = { nombre, codigo };
-
-if (!editingId) {
-  // NUEVO proyecto: solo enviamos nombre y código
-  bodyData = { nombre, codigo };
-}
-
-
+  const bodyData = { nombre, codigo };
   const method = editingId ? 'PUT' : 'POST';
   const url = editingId ? `/api/projects/${editingId}` : '/api/projects';
 
@@ -203,7 +172,6 @@ if (!editingId) {
   });
 
   if (res.ok) {
-    alert(editingId ? 'Proyecto actualizado' : 'Proyecto creado');
     closeModal();
     fetchProjects();
   } else {
@@ -211,6 +179,7 @@ if (!editingId) {
     alert('Error: ' + (e.error || res.status));
   }
 }
+
 
 // Login Flow
 async function loginFlow() {
