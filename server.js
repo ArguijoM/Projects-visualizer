@@ -93,13 +93,13 @@ app.post('/api/logout', (req, res) => {
 app.post('/api/projects', requireLogin, async (req, res) => {
   const { nombre, codigo } = req.body;
   if (!nombre || !codigo) return res.status(400).json({ error: 'Faltan campos' });
+
   try {
-    // Agregamos campo 'orden' con un número grande por defecto
-    const count = await projectsCollection.get();
-    const orden = count.size; // el siguiente número disponible
+    const snapshot = await projectsCollection.get();
+    const orden = snapshot.size + 1; // +1 para que el nuevo quede al final
 
     const docRef = await projectsCollection.add({ nombre, codigo, orden });
-    res.json({ id: docRef.id });
+    res.json({ id: docRef.id, nombre, codigo, orden });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error creando proyecto' });

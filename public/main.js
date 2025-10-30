@@ -186,16 +186,11 @@ async function saveProject() {
 
   let bodyData = { nombre, codigo };
 
-  if (!editingId) {
-    // NUEVO proyecto: obtener la cantidad de proyectos existentes
-    const resAll = await fetch('/api/projects');
-    if (!resAll.ok) {
-      alert('No se pudieron obtener los proyectos existentes');
-      return;
-    }
-    const allProjects = await resAll.json();
-    bodyData.orden = allProjects.length + 1; // asignar el último lugar
-  }
+if (!editingId) {
+  // NUEVO proyecto: solo enviamos nombre y código
+  bodyData = { nombre, codigo };
+}
+
 
   const method = editingId ? 'PUT' : 'POST';
   const url = editingId ? `/api/projects/${editingId}` : '/api/projects';
