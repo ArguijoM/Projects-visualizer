@@ -176,17 +176,25 @@ async function saveProject() {
   const inputNombre = document.getElementById('p-nombre');
   const inputCodigo = document.getElementById('p-codigo');
 
-  if (!inputNombre || !inputCodigo) {
-    console.error("⚠️ Inputs del modal no encontrados");
-    return;
-  }
-
   const nombre = inputNombre.value.trim();
   const codigo = inputCodigo.value.trim();
 
   if (!nombre || !codigo) {
     alert('Nombre y código son obligatorios');
     return;
+  }
+
+  let bodyData = { nombre, codigo };
+
+  if (!editingId) {
+    // NUEVO proyecto: obtener la cantidad de proyectos existentes
+    const resAll = await fetch('/api/projects');
+    if (!resAll.ok) {
+      alert('No se pudieron obtener los proyectos existentes');
+      return;
+    }
+    const allProjects = await resAll.json();
+    bodyData.orden = allProjects.length; // asignar el último lugar
   }
 
   const method = editingId ? 'PUT' : 'POST';
@@ -196,7 +204,7 @@ async function saveProject() {
     method,
     headers: { 'Content-Type': 'application/json' },
     credentials: 'same-origin',
-    body: JSON.stringify({ nombre, codigo })
+    body: JSON.stringify(bodyData)
   });
 
   if (res.ok) {
@@ -208,6 +216,7 @@ async function saveProject() {
     alert('Error: ' + (e.error || res.status));
   }
 }
+
 // Login Flow
 async function loginFlow() {
   if (!isAdmin) {
