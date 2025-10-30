@@ -194,7 +194,7 @@ async function saveProject() {
       return;
     }
     const allProjects = await resAll.json();
-    bodyData.orden = allProjects.length; // asignar el último lugar
+    bodyData.orden = allProjects.length + 1; // asignar el último lugar
   }
 
   const method = editingId ? 'PUT' : 'POST';
