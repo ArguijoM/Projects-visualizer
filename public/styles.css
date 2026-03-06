@@ -2,9 +2,7 @@
 body {
   font-family: "Segoe UI", Arial, sans-serif;
   background: #121212;
-  /* fondo oscuro */
   color: #e0e0e0;
-  /* texto claro */
   margin: 0;
   padding: 0;
 }
@@ -14,35 +12,27 @@ body {
   max-width: 1000px;
   margin: 40px auto;
   background: #1e1e1e;
-  /* ejemplo para modo oscuro */
   padding: 20px 30px;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: relative;
-  /* necesario para ::before */
 }
 
-/* Barra vertical degradada a la izquierda */
 .container::before {
   content: '';
   position: absolute;
   top: 60px;
   bottom: 40px;
   left: 0;
-  /* a la izquierda */
   width: 8px;
-  /* grosor de la barra */
   border-radius: 4px;
-  /* bordes redondeados */
   background: linear-gradient(to bottom, #e74c3c, #f1c40f, #2ecc71);
-  /* rojo arriba, amarillo medio, verde abajo */
 }
 
 /* ---------- CABECERA ---------- */
 .header {
   display: flex;
   justify-content: flex-end;
-  /* botones a la derecha */
   align-items: center;
   position: relative;
   padding-bottom: 15px;
@@ -89,18 +79,14 @@ button:hover {
   background-color: #5a6268;
 }
 
-/* Estilo del botón "Guardar" en el modal */
 #btn-save {
   display: block;
-  /* hace que ocupe toda la línea */
   margin: 25px auto 0;
-  /* centrado y con más espacio superior */
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 8px;
   padding: 10px 20px;
-  /* más relleno para un mejor tamaño */
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
@@ -110,21 +96,34 @@ button:hover {
   background-color: #0056b3;
 }
 
-
 /* ---------- PROYECTOS ---------- */
-.project {
+.project-wrapper {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.project {
+  flex: 1;                          /* ← ocupa todo el ancho disponible */
+  display: flex;
   align-items: flex-start;
-  border: 2px solid #555;
-  /* contorno más visible */
-  background: #2a2a2a;
-  padding: 15px 20px;
-  /* un poco más de espacio interno */
-  border-radius: 10px;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  border: 1px solid #555;
+  background: #1f1f1f;
+  color: #ddd;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   flex-wrap: wrap;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* info del proyecto ocupa todo el ancho restante */
+.project-info {
+  flex: 1;                          /* ← se expande hasta el borde */
+  min-width: 0;
 }
 
 .project strong {
@@ -141,25 +140,73 @@ button:hover {
   color: #cccccc;
 }
 
-
-.project-wrapper {
+/* ── Fila superior: título + fecha ── */
+.project-top-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  position: relative;
+  justify-content: space-between;   /* título a la izq, fecha a la der */
+  width: 100%;
+  gap: 12px;
 }
 
-.project {
-  flex: 1;
-  border: 1px solid #555;
-  background: #1f1f1f;
-  color: #ddd;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+/* ── Fecha de entrega ── */
+.deadline-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;                   /* no se encoge */
+  margin-left: auto;                /* empuja al extremo derecho */
 }
 
+.deadline-icon {
+  font-size: 0.8em;
+  color: #aaa;
+}
+
+.deadline-input.flatpickr-input {
+  border: 1px dashed #bbb;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.8em;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  width: 95px;
+  transition: border-color 0.2s;
+  margin: 0;                        /* override del input global */
+}
+
+.deadline-input.flatpickr-input:hover {
+  border-color: #888;
+}
+
+.deadline-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #bbb;
+  padding: 0;
+  font-size: 0.8em;
+  line-height: 1;
+}
+
+.deadline-clear:hover { color: #e55; }
+
+.deadline-display {
+  font-size: 20px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.deadline-ok      { color: #4caf82; }
+.deadline-soon    { color: #f0b429; }
+.deadline-overdue { color: #e05c5c; }
+.deadline-icon.deadline-ok      { color: #4caf82; }
+.deadline-icon.deadline-soon    { color: #f0b429; }
+.deadline-icon.deadline-overdue { color: #e05c5c; }
+
+/* ---------- FLECHAS ---------- */
 .move-arrows {
   display: flex;
   flex-direction: column;
@@ -177,17 +224,40 @@ button:hover {
   height: 30px;
   display: flex;
   justify-content: center;
-  /* centrado horizontal */
   align-items: center;
-  /* centrado vertical */
   cursor: pointer;
   padding: 0;
-  /* quitar padding extra que desalineaba */
   font-size: 14px;
 }
 
 .move-arrows button:hover {
   background: #666;
+}
+
+.order-select {
+  background: #333;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 6px;
+  width: 38px;
+  height: 30px;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0 2px;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.order-select:hover {
+  background: #444;
+  border-color: #888;
+}
+
+.order-select:focus {
+  outline: none;
+  border-color: #007bff;
 }
 
 .actions button {
@@ -206,6 +276,20 @@ button:hover {
 .actions button:hover {
   opacity: 0.8;
 }
+
+/* ---------- SEMÁFORO ---------- */
+.project-wrapper .priority-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.priority-high        { background-color: #e74c3c; }
+.priority-high-medium { background-color: #f1a20ffa; }
+.priority-medium      { background-color: #f1ed0f; }
+.priority-low         { background-color: #2ecc71; }
 
 /* ---------- MODAL ---------- */
 .modal {
@@ -236,11 +320,9 @@ button:hover {
   width: 100%;
   padding: 8px;
   margin-bottom: 12px;
-  /* <- espacio entre inputs */
   border: 1px solid #ccc;
   border-radius: 6px;
   box-sizing: border-box;
-  /* importante para mantener el width */
   font-size: 14px;
 }
 
@@ -271,86 +353,34 @@ textarea {
   color: #e0e0e0;
 }
 
-/* Spinner circular */
+/* ---------- SPINNER ---------- */
 .loader {
   border: 6px solid #f3f3f3;
-  /* color del fondo del spinner */
   border-top: 6px solid #007bff;
-  /* color del borde animado */
   border-radius: 50%;
   width: 50px;
   height: 50px;
   animation: spin 1s linear infinite;
   margin: 30px auto;
-  /* centrado */
 }
-
-.project-wrapper {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  position: relative;
-}
-
-/* Semáforo indicador de importancia */
-.project-wrapper .priority-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-/* Colores: rojo=alta importancia, amarillo=media, verde=baja */
-.priority-high {
-  background-color: #e74c3c;
-}
-
-/* rojo */
-.priority-high-medium {
-  background-color: #f1a20ffa;
-}
-
-/* rojo */
-.priority-medium {
-  background-color: #f1ed0f;
-}
-
-/* amarillo */
-.priority-low {
-  background-color: #2ecc71;
-}
-
-/* verde */
-
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-
 
 /* ---------- MEDIA QUERIES ---------- */
 @media (max-width: 600px) {
   .header {
-    display: flex;
     flex-direction: column;
-    /* apila título y botones */
     align-items: center;
     justify-content: center;
     gap: 10px;
     padding: 10px 0;
   }
 
-  /* Elimina el posicionamiento absoluto que causaba el solapamiento */
   .header h1 {
     position: static;
-    /* antes estaba absolute */
     transform: none;
     left: auto;
     font-size: 1.8rem;
@@ -361,11 +391,7 @@ textarea {
   }
 
   .buttons {
-    display: flex;
     justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    /* si hay muchos, que bajen en línea nueva */
     margin-top: 5px;
   }
 
@@ -375,20 +401,29 @@ textarea {
     border-radius: 6px;
   }
 
-  /* --- Proyectos --- */
-  .project {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 12px;
+  .project strong  { font-size: 1.4rem; }
+  .project .meta   { font-size: 1.2rem; }
+
+  /* Fecha debajo del código en móvil */
+  .project-top-row {
+    flex-wrap: wrap;
   }
 
-  .project strong {
-    font-size: 1.4rem;
+  .project-top-row strong {
+    order: 1;
+    width: 100%;              /* título ocupa toda la fila */
+  }
+
+  .deadline-row {
+    order: 3;                 /* va después del .meta */
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
   }
 
   .project .meta {
-    font-size: 1.2rem;
+    order: 2;
+    width: 100%;
   }
 
   .move-arrows button {
@@ -396,9 +431,7 @@ textarea {
     padding: 6px;
   }
 
-  /* --- Inputs y modal --- */
-  input,
-  textarea {
+  input, textarea {
     font-size: 1rem;
     padding: 10px;
   }
@@ -415,17 +448,7 @@ textarea {
   }
 
   .container::before {
-    content: '';
-    position: absolute;
     top: 120px;
     bottom: 40px;
-    left: 0;
-    /* a la izquierda */
-    width: 8px;
-    /* grosor de la barra */
-    border-radius: 4px;
-    /* bordes redondeados */
-    background: linear-gradient(to bottom, #e74c3c, #f1c40f, #2ecc71);
-    /* rojo arriba, amarillo medio, verde abajo */
   }
 }

@@ -47,9 +47,41 @@ function renderProjects(projects) {
   // Bloque principal del proyecto
   const div = document.createElement('div');
   div.className = 'project';
+
+  // Formato de fecha para mostrar (dd/mm/yyyy)
+  const fechaDisplay = p.fechaEntrega
+    ? (() => {
+        const [y, m, d] = p.fechaEntrega.split('-');
+        return `${d}/${m}/${y}`;
+      })()
+    : null;
+
+  // Ícono de estado de fecha
+  const deadlineStatus = getDeadlineStatus(p.fechaEntrega);
+
   div.innerHTML = `
-    <div>
-      <strong>${p.nombre}</strong>
+    <div class="project-info">
+      <div class="project-top-row">
+        <strong>${p.nombre}</strong>
+        <div class="deadline-row">
+          ${isAdmin ? `
+            <i class="fa-regular fa-calendar deadline-icon"></i>
+            <input
+              type="text"
+              class="deadline-input flatpickr-input"
+              id="deadline-${p.id}"
+              placeholder="Agregar fecha"
+              value="${p.fechaEntrega || ''}"
+              data-id="${p.id}"
+              readonly
+            />
+            ${p.fechaEntrega ? `<button class="deadline-clear" title="Quitar fecha" data-id="${p.id}"><i class="fa-solid fa-xmark"></i></button>` : ''}
+          ` : (fechaDisplay ? `
+            <i class="fa-regular fa-calendar${deadlineStatus.icon} deadline-icon ${deadlineStatus.cls}"></i>
+            <span class="deadline-display ${deadlineStatus.cls}">${fechaDisplay}</span>
+          ` : '')}
+        </div>
+      </div>
       <div class="meta">Código: ${p.codigo}</div>
     </div>
   `;
@@ -69,21 +101,96 @@ function renderProjects(projects) {
 
   wrapper.appendChild(div);
 
-  // Bloque de flechas (solo visible para admin)
+  // Bloque de flechas + select de orden (solo visible para admin)
   const arrows = document.createElement('div');
   arrows.className = 'move-arrows';
+
+  // Generar opciones del select (1 al total de proyectos)
+  const total = projects.length;
+  let options = '';
+  for (let i = 1; i <= total; i++) {
+    options += `<option value="${i}" ${i === p.orden ? 'selected' : ''}>${i}</option>`;
+  }
+
   arrows.innerHTML = `
     <button class="up"><i class="fa-solid fa-angle-up"></i></button>
+    <select class="order-select" title="Mover a posición">${options}</select>
     <button class="down"><i class="fa-solid fa-angle-down"></i></button>
   `;
   arrows.querySelector('.up').onclick = () => moveProject(p, -1);
   arrows.querySelector('.down').onclick = () => moveProject(p, 1);
+  arrows.querySelector('.order-select').onchange = async (e) => {
+    const newOrden = parseInt(e.target.value);
+    if (newOrden !== p.orden) {
+      await jumpProject(p, newOrden);
+    }
+  };
   arrows.style.display = isAdmin ? 'flex' : 'none';
 
   wrapper.appendChild(arrows);
   container.appendChild(wrapper);
+
+  // Inicializar Flatpickr en el input de fecha (solo admin)
+  if (isAdmin) {
+    const inputEl = document.getElementById(`deadline-${p.id}`);
+    if (inputEl) {
+      flatpickr(inputEl, {
+        locale: 'es',
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        defaultDate: p.fechaEntrega || null,
+        allowInput: false,
+        onChange: async (selectedDates, dateStr) => {
+          await saveDeadline(p.id, dateStr);
+          // Re-render sin loader para reflejar el estado de color
+          await fetchProjects(false);
+        }
+      });
+
+      // Botón de limpiar fecha
+      const clearBtn = div.querySelector(`.deadline-clear[data-id="${p.id}"]`);
+      if (clearBtn) {
+        clearBtn.onclick = async (e) => {
+          e.stopPropagation();
+          await saveDeadline(p.id, null);
+          await fetchProjects(false);
+        };
+      }
+    }
+  }
 });
 
+}
+
+async function saveDeadline(projectId, dateStr) {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/deadline`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ fechaEntrega: dateStr || null })
+    });
+    if (!res.ok) {
+      const e = await res.json();
+      alert('Error guardando fecha: ' + (e.error || res.status));
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error de conexión al guardar fecha');
+  }
+}
+
+function getDeadlineStatus(fechaEntrega) {
+  if (!fechaEntrega) return { cls: '', icon: '' };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(fechaEntrega + 'T00:00:00');
+  const diffDays = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return { cls: 'deadline-overdue', icon: '-xmark' };
+  if (diffDays <= 7) return { cls: 'deadline-soon', icon: '-clock' };
+  return { cls: 'deadline-ok', icon: '' };
 }
 
 async function deleteProject(id) {
@@ -128,6 +235,26 @@ async function moveProject(project, direction) {
   }
 }
 
+
+async function jumpProject(project, newOrden) {
+  try {
+    const res = await fetch(`/api/projects/${project.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ orden: newOrden })
+    });
+    if (!res.ok) {
+      const e = await res.json();
+      alert('Error al mover proyecto: ' + (e.error || res.status));
+      return;
+    }
+    await fetchProjects(false);
+  } catch (err) {
+    console.error(err);
+    alert('Error al mover proyecto');
+  }
+}
 
 // Modal logic
 function openModal(project = null) {

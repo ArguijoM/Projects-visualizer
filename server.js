@@ -156,6 +156,25 @@ app.put('/api/projects/:id', requireLogin, async (req, res) => {
   }
 });
 
+// Actualizar fecha de entrega (protegido)
+app.patch('/api/projects/:id/deadline', requireLogin, async (req, res) => {
+  const id = req.params.id;
+  const { fechaEntrega } = req.body;
+
+  try {
+    const docRef = projectsCollection.doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Proyecto no encontrado' });
+
+    // fechaEntrega puede ser null para borrarla
+    await docRef.update({ fechaEntrega: fechaEntrega || null });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error actualizando fecha de entrega' });
+  }
+});
+
 // Borrar proyecto (protegido)
 app.delete('/api/projects/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
