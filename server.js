@@ -44,27 +44,27 @@ function requireLogin(req, res, next) {
 app.get('/api/projects', async (req, res) => {
   try {
     const snapshot = await projectsCollection
-      .where('tipo', '==', 1)
       .orderBy('orden', 'asc')
       .get();
 
     const projects = [];
+
     snapshot.forEach(doc => {
-      projects.push({
-        id: doc.id,
-        ...doc.data()
-      });
+      const data = doc.data();
+
+      // Solo incluir proyectos con tipo = 1
+      if (data.tipo === 1) {
+        projects.push({
+          id: doc.id,
+          ...data,
+        });
+      }
     });
 
     res.json(projects);
-
   } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      error: err.message,
-      stack: err.stack
-    });
+    console.error('Error obteniendo proyectos:', err);
+    res.status(500).json({ error: 'Error leyendo proyectos' });
   }
 });
 
