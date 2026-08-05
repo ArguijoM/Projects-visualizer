@@ -82,7 +82,7 @@ function renderProjects(projects) {
           ` : '')}
         </div>
       </div>
-      <div class="meta">Código: ${p.codigo}</div>
+      <div class="meta">Código: ${p.clave}</div>
     </div>
   `;
 
@@ -260,9 +260,9 @@ async function jumpProject(project, newOrden) {
 function openModal(project = null) {
   const modal = document.getElementById('modal');
   const inputNombre = document.getElementById('p-nombre');
-  const inputCodigo = document.getElementById('p-codigo');
+  const inputClave = document.getElementById('p-clave');
 
-  if (!modal || !inputNombre || !inputCodigo) {
+  if (!modal || !inputNombre || !inputClave) {
     console.error("Modal o inputs no encontrados en el DOM");
     return;
   }
@@ -271,7 +271,7 @@ function openModal(project = null) {
   editingId = project ? project.id : null;
   document.getElementById('modal-title').textContent = project ? 'Editar Proyecto' : 'Nuevo Proyecto';
   inputNombre.value = project ? project.nombre : '';
-  inputCodigo.value = project ? project.codigo : '';
+  inputClave.value = project ? project.clave : '';
 }
 
 
@@ -283,11 +283,11 @@ function closeModal() {
 // Guardar (crear o editar)
 async function saveProject() {
   const nombre = document.getElementById('p-nombre').value.trim();
-  const codigo = document.getElementById('p-codigo').value.trim();
+  const clave = document.getElementById('p-clave').value.trim();
 
-  if (!nombre || !codigo) return alert('Nombre y código son obligatorios');
+  if (!nombre || !clave) return alert('Nombre y código son obligatorios');
 
-  const bodyData = { nombre, codigo };
+  const bodyData = { nombre, clave };
   const method = editingId ? 'PUT' : 'POST';
   const url = editingId ? `/api/projects/${editingId}` : '/api/projects';
 
