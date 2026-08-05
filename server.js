@@ -52,14 +52,19 @@ app.get('/api/projects', async (req, res) => {
     snapshot.forEach(doc => {
       projects.push({
         id: doc.id,
-        ...doc.data(),
+        ...doc.data()
       });
     });
 
     res.json(projects);
+
   } catch (err) {
-    console.error('Error obteniendo proyectos:', err);
-    res.status(500).json({ error: 'Error leyendo proyectos' });
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message,
+      stack: err.stack
+    });
   }
 });
 
