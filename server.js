@@ -43,20 +43,20 @@ function requireLogin(req, res, next) {
 // Obtener todos los proyectos (público)
 app.get('/api/projects', async (req, res) => {
   try {
-    const snapshot = await projectsCollection.orderBy('orden', 'asc').get();
+    const snapshot = await projectsCollection
+      .where('tipo', '==', 1)
+      .orderBy('orden', 'asc')
+      .get();
+
     const projects = [];
     snapshot.forEach(doc => {
-      const data = doc.data();
-      projects.push({ id: doc.id, ...data });
+      projects.push({
+        id: doc.id,
+        ...doc.data(),
+      });
     });
 
-    const ordered = projects.sort((a, b) => {
-      const orderA = a.orden !== undefined ? a.orden : 9999;
-      const orderB = b.orden !== undefined ? b.orden : 9999;
-      return orderA - orderB;
-    });
-
-    res.json(ordered);
+    res.json(projects);
   } catch (err) {
     console.error('Error obteniendo proyectos:', err);
     res.status(500).json({ error: 'Error leyendo proyectos' });
@@ -91,15 +91,15 @@ app.post('/api/logout', (req, res) => {
 
 // Crear proyecto (protegido)
 app.post('/api/projects', requireLogin, async (req, res) => {
-  const { nombre, codigo } = req.body;
-  if (!nombre || !codigo) return res.status(400).json({ error: 'Faltan campos' });
+  const { nombre, clave } = req.body;
+  if (!nombre || !clave) return res.status(400).json({ error: 'Faltan campos' });
 
   try {
     const snapshot = await projectsCollection.get();
     const orden = snapshot.size + 1; // agregar al final
 
-    const docRef = await projectsCollection.add({ nombre, codigo, orden });
-    res.json({ id: docRef.id, nombre, codigo, orden });
+    const docRef = await projectsCollection.add({ nombre, clave, orden });
+    res.json({ id: docRef.id, nombre, clave, orden });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error creando proyecto' });
@@ -110,7 +110,7 @@ app.post('/api/projects', requireLogin, async (req, res) => {
 // Editar proyecto (protegido)
 app.put('/api/projects/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
-  const { nombre, codigo, orden: newOrden } = req.body;
+  const { nombre, clave, orden: newOrden } = req.body;
 
   try {
     const docRef = projectsCollection.doc(id);
@@ -119,7 +119,7 @@ app.put('/api/projects/:id', requireLogin, async (req, res) => {
 
     const updates = {};
     if (nombre) updates.nombre = nombre;
-    if (codigo) updates.codigo = codigo;
+    if (clave) updates.clave = clave;
 
     if (newOrden !== undefined && newOrden !== doc.data().orden) {
       const oldOrden = doc.data().orden;
