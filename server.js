@@ -53,7 +53,7 @@ app.get('/api/projects', async (req, res) => {
       const data = doc.data();
 
       // Solo incluir proyectos con tipo = 1
-      if (data.tipo === 1) {
+      if (data.tipo === 1 && data.status) {
         projects.push({
           id: doc.id,
           ...data,
