@@ -31,16 +31,55 @@
   </div>
 
   <!-- Modal de creación/edición -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span id="modal-close" class="close">&times;</span>
-      <h2 id="modal-title">Nuevo Proyecto</h2>
-      <input id="p-nombre" placeholder="Nombre del proyecto"><br>
-      <input id="p-clave" placeholder="Código del proyecto"><br>
-      <!--<textarea id="p-desc" placeholder="Descripción (opcional)"></textarea><br>-->
-      <button id="btn-save">Guardar</button>
-    </div>
+<!-- Modal de creación/edición -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span id="modal-close" class="close">&times;</span>
+
+    <h2 id="modal-title">Nuevo Proyecto</h2>
+
+    <input
+      id="p-nombre"
+      type="text"
+      placeholder="Nombre del proyecto"
+    ><br>
+
+    <input
+      id="p-clave"
+      type="text"
+      placeholder="Código del proyecto"
+    ><br>
+
+    <select id="p-tipo">
+      <option value="0">Tipo 0</option>
+      <option value="1">Tipo 1</option>
+    </select><br>
+
+    <input
+      id="p-ordenCompra"
+      type="text"
+      placeholder="Orden de compra (opcional)"
+    ><br>
+
+    <input
+      id="p-fechaEntrega"
+      type="text"
+      placeholder="Fecha de entrega"
+      readonly
+    ><br>
+
+    <label class="status-label">
+      <input
+        id="p-status"
+        type="checkbox"
+        checked
+      >
+      Proyecto activo
+    </label><br>
+
+    <button id="btn-save">Guardar</button>
   </div>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>

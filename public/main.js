@@ -259,19 +259,68 @@ async function jumpProject(project, newOrden) {
 // Modal logic
 function openModal(project = null) {
   const modal = document.getElementById('modal');
+
   const inputNombre = document.getElementById('p-nombre');
   const inputClave = document.getElementById('p-clave');
+  const inputTipo = document.getElementById('p-tipo');
+  const inputOrdenCompra = document.getElementById('p-ordenCompra');
+  const inputFechaEntrega = document.getElementById('p-fechaEntrega');
+  const inputStatus = document.getElementById('p-status');
 
-  if (!modal || !inputNombre || !inputClave) {
-    console.error("Modal o inputs no encontrados en el DOM");
+  if (
+    !modal ||
+    !inputNombre ||
+    !inputClave ||
+    !inputTipo ||
+    !inputOrdenCompra ||
+    !inputFechaEntrega ||
+    !inputStatus
+  ) {
+    console.error('Modal o inputs no encontrados en el DOM');
     return;
   }
 
-  modal.style.display = 'block';
   editingId = project ? project.id : null;
-  document.getElementById('modal-title').textContent = project ? 'Editar Proyecto' : 'Nuevo Proyecto';
+
+  document.getElementById('modal-title').textContent =
+    project ? 'Editar Proyecto' : 'Nuevo Proyecto';
+
   inputNombre.value = project ? project.nombre : '';
+
   inputClave.value = project ? project.clave : '';
+
+  // La clave es el ID del documento Firebase.
+  // No permitimos cambiarla al editar.
+  inputClave.disabled = !!project;
+
+  inputTipo.value = project
+    ? String(project.tipo ?? 0)
+    : '0';
+
+  inputOrdenCompra.value =
+    project?.ordenCompra ?? '';
+
+  inputFechaEntrega.value =
+    project?.fechaEntrega ?? '';
+
+  inputStatus.checked =
+    project ? project.status !== false : true;
+
+  modal.style.display = 'block';
+
+  // Inicializar Flatpickr
+  if (inputFechaEntrega._flatpickr) {
+    inputFechaEntrega._flatpickr.destroy();
+  }
+
+  flatpickr(inputFechaEntrega, {
+    locale: 'es',
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'd/m/Y',
+    defaultDate: project?.fechaEntrega || null,
+    allowInput: false
+  });
 }
 
 
@@ -282,28 +331,68 @@ function closeModal() {
 
 // Guardar (crear o editar)
 async function saveProject() {
-  const nombre = document.getElementById('p-nombre').value.trim();
-  const clave = document.getElementById('p-clave').value.trim();
+  const nombre =
+    document.getElementById('p-nombre').value.trim();
 
-  if (!nombre || !clave) return alert('Nombre y código son obligatorios');
+  const clave =
+    document.getElementById('p-clave').value.trim();
 
-  const bodyData = { nombre, clave };
+  const tipo =
+    parseInt(document.getElementById('p-tipo').value, 10);
+
+  const ordenCompra =
+    document.getElementById('p-ordenCompra').value.trim();
+
+  const fechaEntrega =
+    document.getElementById('p-fechaEntrega').value || null;
+
+  const status =
+    document.getElementById('p-status').checked;
+
+  if (!nombre || !clave) {
+    alert('Nombre y código son obligatorios');
+    return;
+  }
+
+  const bodyData = {
+    nombre,
+    clave,
+    tipo,
+    ordenCompra: ordenCompra || null,
+    fechaEntrega,
+    status
+  };
+
   const method = editingId ? 'PUT' : 'POST';
-  const url = editingId ? `/api/projects/${editingId}` : '/api/projects';
 
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify(bodyData)
-  });
+  const url = editingId
+    ? `/api/projects/${editingId}`
+    : '/api/projects';
 
-  if (res.ok) {
-    closeModal();
-    fetchProjects();
-  } else {
-    const e = await res.json();
-    alert('Error: ' + (e.error || res.status));
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(bodyData)
+    });
+
+    if (res.ok) {
+      closeModal();
+      await fetchProjects();
+    } else {
+      const e = await res.json();
+
+      alert(
+        'Error: ' +
+        (e.error || res.status)
+      );
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error de conexión al guardar proyecto');
   }
 }
 

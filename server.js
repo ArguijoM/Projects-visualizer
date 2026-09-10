@@ -95,69 +95,180 @@ app.post('/api/logout', (req, res) => {
 
 
 // Crear proyecto (protegido)
+// Crear proyecto (protegido)
 app.post('/api/projects', requireLogin, async (req, res) => {
-  const { nombre, clave } = req.body;
-  if (!nombre || !clave) return res.status(400).json({ error: 'Faltan campos' });
+  const {
+    nombre,
+    clave,
+    tipo,
+    ordenCompra,
+    fechaEntrega,
+    status
+  } = req.body;
+
+  if (!nombre || !clave) {
+    return res.status(400).json({
+      error: 'Nombre y código son obligatorios'
+    });
+  }
 
   try {
-    const snapshot = await projectsCollection.get();
-    const orden = snapshot.size + 1; // agregar al final
+    // La clave es también el ID del documento Firebase
+    const docRef = projectsCollection.doc(clave);
 
-    const docRef = await projectsCollection.add({ nombre, clave, orden });
-    res.json({ id: docRef.id, nombre, clave, orden });
+    // Evitar sobrescribir un proyecto existente
+    const existingDoc = await docRef.get();
+
+    if (existingDoc.exists) {
+      return res.status(409).json({
+        error: 'Ya existe un proyecto con ese código'
+      });
+    }
+
+    // Obtener el siguiente orden
+    const snapshot = await projectsCollection.get();
+
+    const orden = snapshot.size + 1;
+
+    const proyecto = {
+      clave,
+      nombre,
+      orden,
+      status: status !== false,
+      tipo: tipo ?? 0,
+      ordenCompra: ordenCompra || null,
+      fechaEntrega: fechaEntrega || null
+    };
+
+    await docRef.set(proyecto);
+
+    res.json({
+      id: clave,
+      ...proyecto
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error creando proyecto' });
+    console.error('Error creando proyecto:', err);
+
+    res.status(500).json({
+      error: 'Error creando proyecto'
+    });
   }
 });
 
 
 // Editar proyecto (protegido)
+// Editar proyecto (protegido)
 app.put('/api/projects/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
-  const { nombre, clave, orden: newOrden } = req.body;
+
+  const {
+    nombre,
+    tipo,
+    ordenCompra,
+    fechaEntrega,
+    status,
+    orden: newOrden
+  } = req.body;
 
   try {
     const docRef = projectsCollection.doc(id);
+
     const doc = await docRef.get();
-    if (!doc.exists) return res.status(404).json({ error: 'Proyecto no encontrado' });
+
+    if (!doc.exists) {
+      return res.status(404).json({
+        error: 'Proyecto no encontrado'
+      });
+    }
+
+    const currentData = doc.data();
 
     const updates = {};
-    if (nombre) updates.nombre = nombre;
-    if (clave) updates.clave = clave;
 
-    if (newOrden !== undefined && newOrden !== doc.data().orden) {
-      const oldOrden = doc.data().orden;
+    if (nombre !== undefined) {
+      updates.nombre = nombre;
+    }
 
-      // Ajustar orden de otros proyectos
+    if (tipo !== undefined) {
+      updates.tipo = Number(tipo);
+    }
+
+    if (ordenCompra !== undefined) {
+      updates.ordenCompra = ordenCompra || null;
+    }
+
+    if (fechaEntrega !== undefined) {
+      updates.fechaEntrega = fechaEntrega || null;
+    }
+
+    if (status !== undefined) {
+      updates.status = Boolean(status);
+    }
+
+    if (
+      newOrden !== undefined &&
+      Number(newOrden) !== Number(currentData.orden)
+    ) {
+      const oldOrden = Number(currentData.orden);
+      const ordenDestino = Number(newOrden);
+
       const snapshot = await projectsCollection.get();
       const batch = db.batch();
 
       snapshot.forEach(d => {
-        const o = d.data().orden;
+        const data = d.data();
+        const o = Number(data.orden);
+
         if (d.id !== id) {
+
           // Movimiento hacia arriba
-          if (newOrden < oldOrden && o >= newOrden && o < oldOrden) {
-            batch.update(d.ref, { orden: o + 1 });
+          if (
+            ordenDestino < oldOrden &&
+            o >= ordenDestino &&
+            o < oldOrden
+          ) {
+            batch.update(d.ref, {
+              orden: o + 1
+            });
           }
+
           // Movimiento hacia abajo
-          if (newOrden > oldOrden && o <= newOrden && o > oldOrden) {
-            batch.update(d.ref, { orden: o - 1 });
+          if (
+            ordenDestino > oldOrden &&
+            o <= ordenDestino &&
+            o > oldOrden
+          ) {
+            batch.update(d.ref, {
+              orden: o - 1
+            });
           }
         }
       });
 
-      updates.orden = newOrden;
+      updates.orden = ordenDestino;
+
       batch.update(docRef, updates);
+
       await batch.commit();
-    } else {
+
+    } else if (Object.keys(updates).length > 0) {
       await docRef.update(updates);
     }
 
-    res.json({ ok: true });
+    res.json({
+      ok: true
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error actualizando proyecto' });
+    console.error(
+      'Error actualizando proyecto:',
+      err
+    );
+
+    res.status(500).json({
+      error: 'Error actualizando proyecto'
+    });
   }
 });
 
